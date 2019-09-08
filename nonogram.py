@@ -69,6 +69,8 @@ def combine_truths(row_truths, column_truths):
         for i, row_truth in enumerate(row_truths)
     ]
 
+def count_unknown(truths):
+    return sum(truth.count("?") for truth in truths)
 
 def solve(rows, columns):
     """ Solve a picross / nonogram puzzle
@@ -111,7 +113,11 @@ def solve(rows, columns):
     ]
     column_truths = [ "?" * len(rows) ] * len(columns)
 
-    while any('?' in truth for truth in row_truths):
+    unknown = count_unknown(row_truths)
+    last_unknown = unknown + 1 # make it one more so that it will run_once
+
+    while unknown < last_unknown:
+        last_unknown = unknown
         row_possibilities = [
             eliminate_impossibilities(truth, possibilities)
             for truth, possibilities in zip(row_truths, row_possibilities)
@@ -135,6 +141,7 @@ def solve(rows, columns):
         ]
 
         row_truths = combine_truths(row_truths, column_truths)
+        unknown = count_unknown(row_truths)
 
     return row_truths
 
@@ -142,7 +149,7 @@ def solve(rows, columns):
 def main():
     import sys
     import re
-    COUNT = re.compile("^\d+(\s*,\s*\d+)*$")
+    COUNTS = re.compile("^\d+(\s*,\s*\d+)*$")
     columns = []
     rows = []
     current = columns
@@ -151,7 +158,7 @@ def main():
         arg = arg.strip()
         if arg == 'x' and current is columns:
             current = rows
-        elif COUNT.match(arg):
+        elif COUNTS.match(arg):
             counts = [int(x.strip()) for x in arg.split(",")]
             current.append(counts)
         else:
